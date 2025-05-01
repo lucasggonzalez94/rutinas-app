@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  # Servicio de la aplicación Django (vistas)
+  django_app:
+    build: 
+      context: .
+      dockerfile: Dockerfile.django
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+      - ./db.sqlite3:/code/db.sqlite3
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=django-insecure-dev-only-key
+      - API_URL=http://node_api:3000/api
+    restart: always
+    depends_on:
+      - node_api
+
+  # Servicio de la API de Node.js
+  node_api:
+    build:
+      context: ./api_node
+      dockerfile: Dockerfile
+    command: npm run dev
+    volumes:
+      - ./api_node:/app
+      - ./db.sqlite3:/app/db.sqlite3
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - JWT_SECRET=jwt-secret-dev-only
+    restart: always
