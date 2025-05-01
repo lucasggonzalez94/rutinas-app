@@ -64,13 +64,42 @@ app.use((req, res) => {
   });
 });
 
+// Función para esperar un tiempo determinado
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Función para intentar conectarse a la base de datos con reintentos
+const conectarBaseDatos = async (intentos = 5, tiempoEspera = 5000) => {
+  for (let intento = 1; intento <= intentos; intento++) {
+    try {
+      console.log(`Intento ${intento} de ${intentos} para conectar a la base de datos...`);
+      const resultado = await testConnection();
+      if (resultado) {
+        return true;
+      }
+    } catch (error) {
+      console.error(`Error en el intento ${intento}:`, error.message);
+    }
+    
+    if (intento < intentos) {
+      console.log(`Esperando ${tiempoEspera/1000} segundos antes del siguiente intento...`);
+      await sleep(tiempoEspera);
+    }
+  }
+  
+  return false;
+};
+
 // Iniciar el servidor
 const iniciarServidor = async () => {
   try {
-    // Probar conexión a la base de datos
-    await testConnection();
+    // Intentar conectar a la base de datos con reintentos
+    const conexionExitosa = await conectarBaseDatos();
     
-    // Iniciar el servidor
+    if (!conexionExitosa) {
+      console.error('No se pudo conectar a la base de datos después de varios intentos.');
+    }
+    
+    // Iniciar el servidor incluso si la conexión a la base de datos falló
     app.listen(PORT, () => {
       console.log(`Servidor iniciado en http://localhost:${PORT}`);
       console.log('Presiona CTRL+C para detener');

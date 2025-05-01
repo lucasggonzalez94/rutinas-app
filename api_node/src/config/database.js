@@ -1,27 +1,28 @@
 const { Sequelize } = require('sequelize');
-const path = require('path');
 
-// Ruta a la base de datos SQLite de Django
-const dbPath = path.join(__dirname, '../../../db.sqlite3');
-
-// Configurar instancia de Sequelize
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: dbPath,
-  logging: false, // Desactivar logging SQL
-  define: {
-    // Para trabajar con tablas Django
-    underscored: true,
-    timestamps: false, // Django no usa timestamps por defecto
-    freezeTableName: true, // Evitar que Sequelize pluralice nombres de tablas
+// Configuración para MySQL
+const sequelize = new Sequelize(
+  process.env.DB_NAME || 'rutinas',
+  process.env.DB_USER || 'root',
+  process.env.DB_PASSWORD || 'password',
+  {
+    host: process.env.DB_HOST || 'mysql',
+    dialect: 'mysql',
+    logging: false, // Desactivar logging SQL
+    define: {
+      // Para trabajar con tablas Django
+      underscored: true,
+      timestamps: false, // Django no usa timestamps por defecto
+      freezeTableName: true, // Evitar que Sequelize pluralice nombres de tablas
+    }
   }
-});
+);
 
 // Probar la conexión
 const testConnection = async () => {
   try {
     await sequelize.authenticate();
-    console.log('Conexión a la base de datos establecida correctamente.');
+    console.log('Conexión a la base de datos MySQL establecida correctamente.');
     return true;
   } catch (error) {
     console.error('No se pudo conectar a la base de datos:', error);

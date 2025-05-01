@@ -9,7 +9,6 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
-      - ./db.sqlite3:/code/db.sqlite3
     ports:
       - "8000:8000"
     environment:
@@ -27,12 +26,30 @@ services:
       dockerfile: Dockerfile
     command: npm run dev
     volumes:
-      - ./api_node:/app
-      - ./db.sqlite3:/app/db.sqlite3
-      - /app/node_modules
+      - ./api_node/src:/app/src
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=development
       - JWT_SECRET=jwt-secret-dev-only
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASSWORD=password
+      - DB_NAME=rutinas
     restart: always
+    depends_on:
+      - mysql
+
+  # Servicio de base de datos MySQL
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=rutinas
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+volumes:
+  mysql_data:
